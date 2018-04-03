@@ -133,7 +133,7 @@ misPos2 <- which(is.na(addtab[,"xcoords"]))
 mis2 <- addtab[misPos2,]
 
 
-# google does not allow this geocoding, therefore it is commented out: https://developers.google.com/maps/documentation/geocoding/policies
+# google only allows this geocoding, if the data is shown with a google basemap. Therefore it is commented out: https://developers.google.com/maps/documentation/geocoding/policies
 # source("geocodeGoogle.r")
 # googleAdds <- geocodeGoogle(data = mis2, street = streetCol, houseNumber = houseNrCol,
 #                             houseNumberAppendix = houseNrApCol, zipCode = zipCol, placeName = placeCol)
@@ -180,7 +180,7 @@ if (length(sPos) > 0){
 }
 
 
-# google does not allow this geocoding, therefore it is commented out: https://developers.google.com/maps/documentation/geocoding/policies
+# google only allows this geocoding, if the data is shown with a google basemap. Therefore it is commented out: https://developers.google.com/maps/documentation/geocoding/policies
 # # build spatial object out of addresses geocoded by google
 # sPos <- which(addtab[,"source"] == "Google")
 # if (length(sPos) > 0){
