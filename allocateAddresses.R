@@ -133,15 +133,16 @@ misPos2 <- which(is.na(addtab[,"xcoords"]))
 mis2 <- addtab[misPos2,]
 
 
-source("geocodeGoogle.r")
-googleAdds <- geocodeGoogle(data = mis2, street = streetCol, houseNumber = houseNrCol,
-                            houseNumberAppendix = houseNrApCol, zipCode = zipCol, placeName = placeCol)
-
-
-# add new coordinates address data table
-source("addAddressLocationsToDataTable.r")
-addtab <- addAddressLocationsToDataTable(existingData = addtab, newData = googleAdds,
-                                         newDataSourceName = "Google")
+# google does not allow this geocoding, therefore it is commented out: https://developers.google.com/maps/documentation/geocoding/policies
+# source("geocodeGoogle.r")
+# googleAdds <- geocodeGoogle(data = mis2, street = streetCol, houseNumber = houseNrCol,
+#                             houseNumberAppendix = houseNrApCol, zipCode = zipCol, placeName = placeCol)
+# 
+# 
+# # add new coordinates address data table
+# source("addAddressLocationsToDataTable.r")
+# addtab <- addAddressLocationsToDataTable(existingData = addtab, newData = googleAdds,
+#                                          newDataSourceName = "Google")
 
 
 
@@ -178,18 +179,21 @@ if (length(sPos) > 0){
   
 }
 
-# build spatial object out of addresses geocoded by google
-sPos <- which(addtab[,"source"] == "Google")
-if (length(sPos) > 0){
-  sp_addsGoogle <- SpatialPointsDataFrame(coords = cbind(as.numeric(addtab[sPos, "xcoords"]),
-                                                      as.numeric(addtab[sPos, "ycoords"])),
-                                       data = addtab[sPos,], proj4string =  CRS("+init=epsg:4326"))
-  
-  # transform data
-  sp_addsGoogle <- spTransform(sp_addsGoogle, CRS("+init=epsg:25832"))
-  sp_out <- rbind(sp_out, sp_addsGoogle)
-  
-}
+
+# google does not allow this geocoding, therefore it is commented out: https://developers.google.com/maps/documentation/geocoding/policies
+# # build spatial object out of addresses geocoded by google
+# sPos <- which(addtab[,"source"] == "Google")
+# if (length(sPos) > 0){
+#   sp_addsGoogle <- SpatialPointsDataFrame(coords = cbind(as.numeric(addtab[sPos, "xcoords"]),
+#                                                       as.numeric(addtab[sPos, "ycoords"])),
+#                                        data = addtab[sPos,], proj4string =  CRS("+init=epsg:4326"))
+#   
+#   # transform data
+#   sp_addsGoogle <- spTransform(sp_addsGoogle, CRS("+init=epsg:25832"))
+#   sp_out <- rbind(sp_out, sp_addsGoogle)
+#   
+# }
+
 
 # remove temporary coordinate data
 pos <- which(colnames(sp_out@data) == "rechtswert")
