@@ -22,15 +22,15 @@
 
 
 # inputs for debugging
-# addressFile = "C:/HochschuleBochum/Daten/Herdecke/EinwMeldeAmt/EinwMeldeAmt.xlsx"
-# streetCol = "str."
-# houseNrCol = "HAUSNR"
-# houseNrApCol = "ZUSATZ"
+# addressFile = "C:/Raumanalysen_ChristianMueller/Projekte/Bergheim_Sozialmonitoring/Arbeitsdaten/Schuladressen.xlsx"
+# streetCol = "Adresse"
+# houseNrCol = "Hausnummer"
+# houseNrApCol = "Zusatz"
 # zipCol = "PLZ"
-# placeCol = "ORT"
+# placeCol = "Ort"
 # adminAddDirectory = ""
-# outShp = "C:/HochschuleBochum/Daten/Herdecke/EinwMeldeAmt/OutTest.shp"
-# missingAddsOut = "C:/HochschuleBochum/Daten/Herdecke/EinwMeldeAmt/OutTest.csv"
+# outShp = "C:/Raumanalysen_ChristianMueller/Projekte/Bergheim_Sozialmonitoring/Arbeitsdaten/Schuladressen.shp"
+# missingAddsOut = "C:/Raumanalysen_ChristianMueller/Projekte/Bergheim_Sozialmonitoring/Arbeitsdaten/fehlende_Schuladressen.csv"
 
 # rename variables
 addressFile <- Exceltabelle_Adressen

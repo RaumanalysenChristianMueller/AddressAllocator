@@ -29,7 +29,9 @@ unifyAddressIDField <- function(data, addressIDField){
                                       x = gsub(
                                         x = gsub(
                                           x = gsub(
-                                            x = gsub(x = entries, pattern = "?", replacement = ""),
+                                            x = gsub(
+                                              x = gsub(x = entries, pattern = "?", replacement = ""),
+                                            pattern = "_", replacement = ""),
                                           pattern = ",", replacement = ""),
                                         pattern = "strße", replacement = "str"),
                                       pattern = "Strße", replacement = "str"),
