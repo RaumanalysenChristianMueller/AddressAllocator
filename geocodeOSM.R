@@ -50,10 +50,8 @@ geocodeOSM <- function(data, street, houseNumber, houseNumberAppendix, zipCode, 
   for (a in 1:length(uaddresses)){
     
     # report progress
-    cat(a)
-    cat(" out of ")
-    cat(length(uaddresses))
-    cat('\n')
+    pb_val <- 30 + (a/length(uaddresses) * 15)
+    try(tkconfigure(tk_pb, value = pb_val, maximum = 100), silent = T)
     
     # get coordinates from Nominatim
     api_output <- nominatim_osm(uaddresses[a])
