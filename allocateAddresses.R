@@ -119,7 +119,7 @@ if (adminAddDirectory == ""){
 
 
 # load administrative address data
-try(tkconfigure(tk_lab, text = "Lade amtliche Adressdaten..."), silent = T)
+try(tkconfigure(tk_lab, text = "Lade amtliche Adressdaten (kann ein wenig dauern)..."), silent = T)
 try(tkconfigure(tk_pb, value = 12, maximum = 100), silent = T)
 adminAdd <- read.table(paste0(adminAddDirectory, "/gebref.txt"),
                        sep = ";", dec = ",", header = T, as.is = T, encoding = "UTF-8")
@@ -142,31 +142,31 @@ zip <- read.table(paste0(adminAddDirectory, "/zipCodes.csv"),
 try(tkconfigure(tk_lab, text = "Filtere amtliche Adressdaten..."), silent = T)
 try(tkconfigure(tk_pb, value = 20, maximum = 100), silent = T)
 source("filterAdminAdresses_addInfo.r")
-adminAdd <- filterAdminAdresses_addInfo(toBeGeocodedPlaces = addtab[,placeCol],
+try(adminAdd <- filterAdminAdresses_addInfo(toBeGeocodedPlaces = addtab[,placeCol],
                                 adminAdd = adminAdd, referenceData = ref,
-                                addPlaceNames = T, addZipCode = T, zipCodes = zip)
+                                addPlaceNames = T, addZipCode = T, zipCodes = zip), silent = T)
 
 
 # build address-ID-field for administrative address data
 try(tkconfigure(tk_lab, text = "Erzeuge Adress-ID für amtliche Adressdaten..."), silent = T)
 try(tkconfigure(tk_pb, value = 22, maximum = 100), silent = T)
-adminAdd <- createAddressIDField(data = adminAdd, streetCol = "strassenname",
+try(adminAdd <- createAddressIDField(data = adminAdd, streetCol = "strassenname",
                                  houseNrCol = "hsnr", houseNrApCol = "hsnrzusatz",
-                                 zipCol = "zipCode", placeCol = "placeName")
+                                 zipCol = "zipCode", placeCol = "placeName"), silent = T)
 
 # unify address-ID-fields
 try(tkconfigure(tk_lab, text = "Vereinheitliche Adress-ID-Felder..."), silent = T)
 try(tkconfigure(tk_pb, value = 28, maximum = 100), silent = T)
 source("unifyAddressIDField.r")
-addtab <- unifyAddressIDField(data = addtab, addressIDField = "addressID")
-adminAdd <- unifyAddressIDField(data = adminAdd, addressIDField = "addressID")
+try(addtab <- unifyAddressIDField(data = addtab, addressIDField = "addressID"), silent = T)
+try(adminAdd <- unifyAddressIDField(data = adminAdd, addressIDField = "addressID"), silent = T)
 
 
 
 # join data sets
 try(tkconfigure(tk_lab, text = "Verknüpfe Datensätze..."), silent = T)
 try(tkconfigure(tk_pb, value = 29, maximum = 100), silent = T)
-addtab <- left_join(x = addtab, y = adminAdd, by = "addressID")
+try(addtab <- left_join(x = addtab, y = adminAdd, by = "addressID"), silent = T)
 
 
 # remove redundant columns
@@ -174,71 +174,93 @@ remCols <- colnames(adminAdd)
 remCols <- remCols[-which(remCols == "rechtswert")]
 remCols <- remCols[-which(remCols == "hochwert")]
 remCols <- remCols[-which(remCols == "addressID")]
-addtab <- addtab[,-which(colnames(addtab) %in% remCols)]
+if (length(remCols) > 0) addtab <- addtab[,-which(colnames(addtab) %in% remCols)]
 
 
 # create columns for x- and y-coordinates and data source information
-addtab <- cbind(addtab, xcoords = addtab[,"rechtswert"], ycoords = addtab[,"hochwert"],
+addtab <- cbind(addtab, xcoords = NA, ycoords = NA,
                 source = "", stringsAsFactors = F)
+try(addtab[,"xcoords"] <- addtab[,"rechtswert"], silent = T)
+try(addtab[,"ycoords"] <- addtab[,"hochwert"], silent = T)
 geocodedPos <- which(!is.na(addtab[,"xcoords"]))
-addtab[geocodedPos,"source"] <- "Amtliche_Adresse"
+if (length(geocodedPos) > 0) addtab[geocodedPos,"source"] <- "Amtliche_Adresse"
 
 
 
 # extract addresses which were not geocoded
 misPos <- which(is.na(addtab[,"xcoords"]))
-mis <- addtab[misPos,]
-
-
-# geocode missing addresses via Nominatim/OSM
-try(tkconfigure(tk_lab, text = "Geocodiere fehlende Adressen über OSM..."), silent = T)
-source("geocodeOSM.r")
-osmAdds <- geocodeOSM(data = mis, street = streetCol, houseNumber = houseNrCol,
-                      houseNumberAppendix = houseNrApCol, zipCode = zipCol, placeName = placeCol)
-
-
-# add new coordinates address data table
-addtab <- addAddressLocationsToDataTable(existingData = addtab, newData = osmAdds,
-                                         newDataSourceName = "OpenStreetMap")
-
-
-# extract addresses which were not geocoded
-misPos2 <- which(is.na(addtab[,"xcoords"]))
-mis2 <- addtab[misPos2,]
-
-
-
-# google only allows this geocoding, if the data is shown with a google basemap: https://developers.google.com/maps/documentation/geocoding/policies
-if (useGoogle){
+if (length(misPos) > 0){
+  mis <- addtab[misPos,]
   
-  try(tkconfigure(tk_lab, text = "Geocodiere fehlende Adressen über Google..."), silent = T)
-  source("geocodeGoogle.r")
-  googleAdds <- geocodeGoogle(data = mis2, street = streetCol, houseNumber = houseNrCol,
-                              houseNumberAppendix = houseNrApCol, zipCode = zipCol, placeName = placeCol)
+  
+  # geocode missing addresses via Nominatim/OSM
+  try(tkconfigure(tk_lab, text = "Geocodiere fehlende Adressen über OSM..."), silent = T)
+  source("geocodeOSM.r")
+  osmAdds <- geocodeOSM(data = mis, street = streetCol, houseNumber = houseNrCol,
+                        houseNumberAppendix = houseNrApCol, zipCode = zipCol, placeName = placeCol)
+  pos <- which(osmAdds[,"xcoords"] == "")
+  if (length(pos) > 0) {
+    osmAdds[pos, "xcoords"] <- NA
+    osmAdds[pos, "ycoords"] <- NA
+  }
   
   
   # add new coordinates address data table
   source("addAddressLocationsToDataTable.r")
-  addtab <- addAddressLocationsToDataTable(existingData = addtab, newData = googleAdds,
-                                           newDataSourceName = "Google")
-  
+  addtab <- addAddressLocationsToDataTable(existingData = addtab, newData = osmAdds,
+                                           newDataSourceName = "OpenStreetMap")
   
   
   # extract addresses which were not geocoded
-  misPos3 <- which(is.na(addtab[,"xcoords"]))
-  mis3 <- addtab[misPos3,]
+  misPos2 <- which(is.na(addtab[,"xcoords"]))
+  if (length(misPos2) > 0){
+    mis2 <- addtab[misPos2,]
+    
+    # google only allows this geocoding, if the data is shown with a google basemap: https://developers.google.com/maps/documentation/geocoding/policies
+    if (useGoogle){
+      
+      try(tkconfigure(tk_lab, text = "Geocodiere fehlende Adressen über Google..."), silent = T)
+      source("geocodeGoogle.r")
+      googleAdds <- geocodeGoogle(data = mis2, street = streetCol, houseNumber = houseNrCol,
+                                  houseNumberAppendix = houseNrApCol, zipCode = zipCol, placeName = placeCol)
+      pos <- which(googleAdds[,"xcoords"] == "")
+      if (length(pos) > 0) {
+        googleAdds[pos, "xcoords"] <- NA
+        googleAdds[pos, "ycoords"] <- NA
+      }
+      
+      
+      # add new coordinates address data table
+      source("addAddressLocationsToDataTable.r")
+      addtab <- addAddressLocationsToDataTable(existingData = addtab, newData = googleAdds,
+                                               newDataSourceName = "Google")
+      
+      
+      
+      # extract addresses which were not geocoded
+      misPos3 <- which(is.na(addtab[,"xcoords"]))
+      if (length(misPos3) > 0){
+        mis3 <- addtab[misPos3,]
+      } else {
+        mis3 <- mis2[0,]
+      }
+      
+    } else {
+      
+      mis3 <- mis2
+      
+    }
+  } else {
+    
+    mis3 <- mis
+    
+  }
   
-} else {
-  
-  mis3 <- mis2
+  # write missing addresses to file
+  write.table(x = mis3[,1:(ncol(mis3)-6)], file = missingAddsOut, sep = ";", dec = ".",
+              col.names = T, row.names = F)
   
 }
-
-# write missing addresses to file
-write.table(x = mis3[,1:(ncol(mis3)-6)], file = missingAddsOut, sep = ";", dec = ".",
-            col.names = T, row.names = F)
-
-
 
 # build spatial object out of addresses geocoded by administrative building references
 sPos <- which(addtab[,"source"] == "Amtliche_Adresse")
@@ -252,13 +274,20 @@ if (length(sPos) > 0) {
 # build spatial object out of addresses geocoded by Nominatim/OSM
 sPos <- which(addtab[,"source"] == "OpenStreetMap")
 if (length(sPos) > 0){
+  # sp_addsOsm <- SpatialPointsDataFrame(coords = cbind(as.numeric(addtab[sPos, "xcoords"]),
+  #                                                       as.numeric(addtab[sPos, "ycoords"])),
+  #                                        data = addtab[sPos,], proj4string =  CRS("+init=epsg:3857"))
   sp_addsOsm <- SpatialPointsDataFrame(coords = cbind(as.numeric(addtab[sPos, "xcoords"]),
                                                         as.numeric(addtab[sPos, "ycoords"])),
-                                         data = addtab[sPos,], proj4string =  CRS("+init=epsg:3857"))
+                                         data = addtab[sPos,], proj4string =  CRS("+init=epsg:4326"))
   
   # transform data
   sp_addsOsm <- spTransform(sp_addsOsm, CRS("+init=epsg:25832"))
-  sp_out <- rbind(sp_out, sp_addsOsm)
+  if ("sp_out" %in% ls()){
+    sp_out <- rbind(sp_out, sp_addsOsm)
+  } else {
+    sp_out <- sp_addsOsm
+  }
   
 }
 
@@ -272,7 +301,12 @@ if (length(sPos) > 0){
 
   # transform data
   sp_addsGoogle <- spTransform(sp_addsGoogle, CRS("+init=epsg:25832"))
-  sp_out <- rbind(sp_out, sp_addsGoogle)
+  if ("sp_out" %in% ls()){
+    sp_out <- rbind(sp_out, sp_addsGoogle)
+  } else {
+    sp_out <- sp_addsGoogle
+  }
+  
 
 }
 
@@ -301,3 +335,6 @@ colnames(sp_out@data)[ncol(sp_out@data)] <- "ycoords"
 # write results to shapefile
 Ausgabeshapefile_Geocodierte_Adressen = sp_out
 
+# # test output outside QGIS environment
+# writeOGR(sp_out, dsn = dirname(outShp), layer = "AddressAllocator_output",
+#          driver = "ESRI Shapefile", overwrite_layer=TRUE)

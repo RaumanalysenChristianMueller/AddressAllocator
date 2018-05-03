@@ -22,8 +22,6 @@ filterAdminAdresses_addInfo <- function(toBeGeocodedPlaces, adminAdd, referenceD
   # add zip code column to data
   if (addZipCode) adminAdd <- cbind.data.frame(adminAdd, zipCode = "", stringsAsFactors = F)
   
-  
-  
   # iterate over each place name in to be geocoded addresses
   for (p in 1:length(placeNames)){
     
@@ -40,29 +38,29 @@ filterAdminAdresses_addInfo <- function(toBeGeocodedPlaces, adminAdd, referenceD
       ncols <- length(ref_line) - 2
       
       # first round of filtration: 'land'
-      pos <- which(adminAdd[,"land"] == as.numeric(ref_line[2]))
+      pos <- which(as.numeric(adminAdd[,"land"]) == as.numeric(ref_line[2]))
       
       # second round of filtration: 'regbez'
       if (ncols > 1) {
-        temp <- which(adminAdd[pos,"regbez"] == as.numeric(ref_line[3]))
+        temp <- which(as.numeric(adminAdd[pos,"regbez"]) == as.numeric(ref_line[3]))
         pos <- pos[temp]
       }
       
       # third round of filtration: 'kreis'
       if (ncols > 2) {
-        temp <- which(adminAdd[pos,"kreis"] == as.numeric(ref_line[4]))
+        temp <- which(as.numeric(adminAdd[pos,"kreis"]) == as.numeric(ref_line[4]))
         pos <- pos[temp]
       }
       
       # forth round of filtration: 'gemeinde'
       if (ncols > 3) {
-        temp <- which(adminAdd[pos,"gemeinde"] == as.numeric(ref_line[5]))
+        temp <- which(as.numeric(adminAdd[pos,"gemeinde"]) == as.numeric(ref_line[5]))
         pos <- pos[temp]
       }
       
       # fith round of filtration: 'gemeindeteil'
       if (ncols > 4) {
-        temp <- which(adminAdd[pos,"gemeindeteil"] == as.numeric(ref_line[6]))
+        temp <- which(as.numeric(adminAdd[pos,"gemeindeteil"]) == as.numeric(ref_line[6]))
         pos <- pos[temp]
       }
       
