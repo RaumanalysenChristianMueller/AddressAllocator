@@ -6,3 +6,5 @@ The AddressAllocator geocodes addresses in a three step procedure:
 
 This script is designed for usage in QGIS
 Run allocateAddresses.r to run the AddressAllocator
+
+This project was created under QGIS version < 3.0 and is not further pursued. Please visit https://github.com/RaumanalysenChristianMueller/AddressAllocator_py for a script which performs a similar task and can be executed under QGIS with version numbers > 3.0.
